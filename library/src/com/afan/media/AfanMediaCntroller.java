@@ -7,10 +7,12 @@ import android.content.Context;
 import android.os.Handler;
 import android.os.Message;
 import android.util.AttributeSet;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.MediaController;
 import android.widget.MediaController.MediaPlayerControl;
 import android.widget.RelativeLayout;
@@ -43,7 +45,7 @@ public class AfanMediaCntroller extends RelativeLayout {
     private View anchor;
     private SeekBar mProgress;
     private TextView mEndTime, mCurrentTime;
-    private ImageButton mPauseButton;
+    private ImageView mPauseButton;
     
     StringBuilder mFormatBuilder;
     Formatter mFormatter;
@@ -78,7 +80,11 @@ public class AfanMediaCntroller extends RelativeLayout {
         removeAllViews();
         View v = makeControllerView();
         addView(v, frameParams);
-        show();
+        RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(anchor.getWidth(), RelativeLayout.LayoutParams.MATCH_PARENT);
+        ((RelativeLayout) anchor).addView(this, params);
+        setVisibility(GONE);
+        mShowing = false;
+        //show();
     }
     
     protected View makeControllerView() {
@@ -89,7 +95,16 @@ public class AfanMediaCntroller extends RelativeLayout {
     }
     
     private void initControllerView(View root) {
-        mPauseButton = (ImageButton) root.findViewById(R.id.videoPause);
+        root.findViewById(R.id.controller).setOnTouchListener(new OnTouchListener()
+        {
+            
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                return true;
+            }
+        });
+        
+        mPauseButton = (ImageView) root.findViewById(R.id.videoPause);
         if (mPauseButton != null) {
             mPauseButton.requestFocus();
             mPauseButton.setOnClickListener(mPauseListener);
@@ -104,6 +119,53 @@ public class AfanMediaCntroller extends RelativeLayout {
         
         mFormatBuilder = new StringBuilder();
         mFormatter = new Formatter(mFormatBuilder, Locale.getDefault());
+    }
+    
+    @Override
+    public boolean dispatchKeyEvent(KeyEvent event) {
+        int keyCode = event.getKeyCode();
+        final boolean uniqueDown = event.getRepeatCount() == 0 && event.getAction() == KeyEvent.ACTION_DOWN;
+        if (keyCode == KeyEvent.KEYCODE_HEADSETHOOK || keyCode == KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE || keyCode == KeyEvent.KEYCODE_SPACE) {
+            if (uniqueDown) {
+                doPauseResume();
+                show(DEFAULT_TIMEOUT);
+                if (mPauseButton != null) {
+                    mPauseButton.requestFocus();
+                }
+            }
+            return true;
+        } else if (keyCode == KeyEvent.KEYCODE_MEDIA_PLAY) {
+            if (uniqueDown && !mPlayer.isPlaying()) {
+                mPlayer.start();
+                updatePausePlay();
+                show(DEFAULT_TIMEOUT);
+            }
+            return true;
+        } else if (keyCode == KeyEvent.KEYCODE_MEDIA_STOP || keyCode == KeyEvent.KEYCODE_MEDIA_PAUSE) {
+            if (uniqueDown && mPlayer.isPlaying()) {
+                mPlayer.pause();
+                updatePausePlay();
+                show(DEFAULT_TIMEOUT);
+            }
+            return true;
+        } else if (keyCode == KeyEvent.KEYCODE_VOLUME_DOWN || keyCode == KeyEvent.KEYCODE_VOLUME_UP
+                || keyCode == KeyEvent.KEYCODE_VOLUME_MUTE || keyCode == KeyEvent.KEYCODE_CAMERA) {
+            // don't show the controls for volume adjustment
+            return super.dispatchKeyEvent(event);
+        } else if (keyCode == KeyEvent.KEYCODE_BACK || keyCode == KeyEvent.KEYCODE_MENU) {
+            if (uniqueDown) {
+                hide();
+            }
+            return true;
+        }
+        show(DEFAULT_TIMEOUT);
+        return super.dispatchKeyEvent(event);
+    }
+    
+    @Override
+    public boolean onTrackballEvent(MotionEvent ev) {
+        show(DEFAULT_TIMEOUT);
+        return false;
     }
     
     private OnClickListener mPauseListener = new OnClickListener()
@@ -212,32 +274,34 @@ public class AfanMediaCntroller extends RelativeLayout {
         if (mShowing) {
             try {
                 mHandler.removeMessages(SHOW_PROGRESS);
+                setVisibility(View.INVISIBLE);
             } catch (Exception e) {
-                mShowing = false;
             }
+            mShowing = false;
         }
     }
     
     public void show() {
-        show(0);
+        show(DEFAULT_TIMEOUT);
     }
     
-    public void show(int time) {
+    public void show(int timeout) {
         if (!mShowing && anchor != null) {
             setProgress();
             if (mPauseButton != null) {
                 mPauseButton.requestFocus();
             }
-            
-            RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(anchor.getWidth(),
-                    RelativeLayout.LayoutParams.MATCH_PARENT);
-            
-            ((RelativeLayout) anchor).addView(this, params);
+            setVisibility(View.VISIBLE);
             mShowing = true;
         }
         
         updatePausePlay();
         mHandler.sendEmptyMessage(SHOW_PROGRESS);
+        Message msg = mHandler.obtainMessage(FADE_OUT);
+        if (timeout != 0) {
+            mHandler.removeMessages(FADE_OUT);
+            mHandler.sendMessageDelayed(msg, timeout);
+        }
         
     }
     

@@ -43,7 +43,6 @@ public class MainActivity extends Activity {
             @Override
             public void onPrepared(MediaPlayer mp) {
                 videoView.start();
-                videoView.showController();
             }
         });
         videoParent.addView(videoView, new RelativeLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
