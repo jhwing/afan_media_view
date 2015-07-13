@@ -232,7 +232,6 @@ public class AfanVideoView extends TextureView implements MediaController.MediaP
             // mMediaController.setEnabled(isInPlaybackState());
             mMediaController.setEnabled(true);
         }
-        
     }
     
     MediaPlayer.OnVideoSizeChangedListener mSizeChangedListener = new MediaPlayer.OnVideoSizeChangedListener()
@@ -265,18 +264,19 @@ public class AfanVideoView extends TextureView implements MediaController.MediaP
             }
             
             if (mVideoWidth != 0 && mVideoHeight != 0) {
-                if (mSurfaceWidth == mVideoWidth && mSurfaceHeight == mVideoHeight) {
-                    if (mTargetState == STATE_PLAYING) {
-                        start();
-                        if (mMediaController != null) {
-                            mMediaController.show();
-                        }
-                    } else if (!isPlaying() && (seekToPosition != 0 || getCurrentPosition() > 0)) {
-                        if (mMediaController != null) {
-                            mMediaController.show(0);
-                        }
+                // if (mSurfaceWidth == mVideoWidth && mSurfaceHeight ==
+                // mVideoHeight) {
+                if (mTargetState == STATE_PLAYING) {
+                    start();
+                    if (mMediaController != null) {
+                        mMediaController.show();
+                    }
+                } else if (!isPlaying() && (seekToPosition != 0 || getCurrentPosition() > 0)) {
+                    if (mMediaController != null) {
+                        mMediaController.show(0);
                     }
                 }
+                // }
             } else {
                 if (mTargetState == STATE_PLAYING) {
                     start();
@@ -289,6 +289,14 @@ public class AfanVideoView extends TextureView implements MediaController.MediaP
         if (mMediaController != null) {
             mMediaController.show();
         }
+    }
+    
+    public void showLoadigProgress () {
+        
+    }
+    
+    public void disLoadingProgress() {
+        
     }
     
     private MediaPlayer.OnCompletionListener mCompletionListener = new MediaPlayer.OnCompletionListener()

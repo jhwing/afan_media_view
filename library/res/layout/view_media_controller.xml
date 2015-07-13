@@ -3,6 +3,14 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent" >
 
+    <ProgressBar
+        android:id="@+id/progress"
+        style="?android:progressBarStyleSmall"
+        android:layout_width="40.0dip"
+        android:layout_height="40.0dip"
+        android:layout_centerInParent="true"
+        android:indeterminateDrawable="@drawable/progress_bar_drawable" />
+
     <RelativeLayout
         android:id="@+id/controller"
         android:layout_width="match_parent"

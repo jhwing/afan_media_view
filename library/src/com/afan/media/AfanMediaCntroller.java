@@ -15,6 +15,7 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.MediaController;
 import android.widget.MediaController.MediaPlayerControl;
+import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.SeekBar.OnSeekBarChangeListener;
@@ -43,7 +44,9 @@ public class AfanMediaCntroller extends RelativeLayout {
     private Context mContext;
     private View mRoot;
     private View anchor;
+    private View controller;
     private SeekBar mProgress;
+    private ProgressBar mLoadProgress;
     private TextView mEndTime, mCurrentTime;
     private ImageView mPauseButton;
     
@@ -82,6 +85,9 @@ public class AfanMediaCntroller extends RelativeLayout {
         addView(v, frameParams);
         RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(anchor.getWidth(), RelativeLayout.LayoutParams.MATCH_PARENT);
         ((RelativeLayout) anchor).addView(this, params);
+        if (controller != null) {
+            controller.setVisibility(View.GONE);
+        }
         setVisibility(GONE);
         mShowing = false;
         //show();
@@ -95,9 +101,9 @@ public class AfanMediaCntroller extends RelativeLayout {
     }
     
     private void initControllerView(View root) {
-        root.findViewById(R.id.controller).setOnTouchListener(new OnTouchListener()
+        controller = root.findViewById(R.id.controller);
+        controller.setOnTouchListener(new OnTouchListener()
         {
-            
             @Override
             public boolean onTouch(View v, MotionEvent event) {
                 return true;
@@ -116,6 +122,8 @@ public class AfanMediaCntroller extends RelativeLayout {
             mProgress.setOnSeekBarChangeListener(mSeekListener);
             mProgress.setMax(1000);
         }
+        
+        mLoadProgress = (ProgressBar) root.findViewById(R.id.progress);
         
         mFormatBuilder = new StringBuilder();
         mFormatter = new Formatter(mFormatBuilder, Locale.getDefault());

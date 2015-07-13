@@ -2,6 +2,7 @@ package com.afan.media.demo;
 
 import android.app.Activity;
 import android.media.MediaPlayer;
+import android.media.MediaPlayer.OnCompletionListener;
 import android.media.MediaPlayer.OnPreparedListener;
 import android.os.Bundle;
 import android.view.Menu;
@@ -12,6 +13,8 @@ import android.widget.RelativeLayout.LayoutParams;
 
 import com.afan.media.AfanMediaCntroller;
 import com.afan.media.AfanVideoView;
+import com.afan.media.listener.PlayStateAgent;
+import com.afan.media.listener.PlayStateAgent.PlayEvent;
 
 public class MainActivity extends Activity {
     
@@ -35,6 +38,7 @@ public class MainActivity extends Activity {
         videoView = new AfanVideoView(this);
         mediaCntroller = new AfanMediaCntroller(this);
         controller = new MediaController(this, false);
+        videoView.start(); // 第一次播放设置播放状态
         videoView.setVideoPath(path);
         videoView.setMediaController(mediaCntroller);
         videoView.setOnPreparedListener(new OnPreparedListener()
@@ -42,9 +46,18 @@ public class MainActivity extends Activity {
             
             @Override
             public void onPrepared(MediaPlayer mp) {
-                videoView.start();
+                PlayStateAgent.onEvent(PlayEvent.START_Play);
             }
         });
+        videoView.setOnCompletionListener(new OnCompletionListener()
+        {
+            
+            @Override
+            public void onCompletion(MediaPlayer mp) {
+                PlayStateAgent.onEvent(PlayEvent.END_PLAY);
+            }
+        });
+        
         videoParent.addView(videoView, new RelativeLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
     }
     
